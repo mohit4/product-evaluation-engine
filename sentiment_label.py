@@ -2,6 +2,8 @@
 this script is used to work on the filtered_demo_files data
 using the trained Naive Bayed classifier stored in classifiers
 
+NOTE : Need to improve it, add lemmatization to it
+
 NOTE : This script is directory oriented, results from filtered_demo_files will be used.
 Presence of the directory is assumed.
 """
@@ -56,6 +58,7 @@ if __name__ == "__main__":
     classifier = load_classifier('classifiers/naive_bayes_classifier.pickle')
     filenames = os.listdir('filtered_demo_files')
     flog = open('labels_log.txt','w')
+    flog.write("{")
     for filename in filenames:
         labels = []
         fobj = open('filtered_demo_files/'+filename,'r')
@@ -67,5 +70,6 @@ if __name__ == "__main__":
                 list_of_words.extend(sent)
             labels.append(classifier.classify(document_features(feature_filter(list_of_words))))
         # adding this data to the labels_log file
-        flog.write("[%s,%s]\n"%(filename,str(labels)))
+        flog.write("'%s':%s,"%(filename,str(labels)))
+    flog.write("'demo':[]}")
     flog.close()
