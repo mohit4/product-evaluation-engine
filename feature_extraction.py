@@ -3,6 +3,7 @@ this script extracts the potential features of a product and give it score
 using the HAC and RankAlgorithm
 """
 
+import os
 import nltk
 import sys
 from nltk.corpus import wordnet
@@ -86,7 +87,7 @@ def high_adjective_count(reviews):
     noun_score_map = {}
     for review in reviews:
         # sentences = [transform([x.lower() for x in nltk.word_tokenize(sentence) if len(x)>=3]) for sentence in sent_tok.tokenize(review)]
-        for sentence in sentences:
+        for sentence in review:
             # for each adj find the closest noun
             l = len(sentence)
             for i in range(l):
