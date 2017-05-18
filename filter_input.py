@@ -9,9 +9,9 @@ import nltk
 from nltk.tokenize import WordPunctTokenizer
 from nltk.tokenize import word_tokenize
 import sys
-import numpy as np
+import os
 
-debugging = True
+debugging = False
 
 # these will be used to remove extra words from
 stop_words = [
@@ -29,7 +29,7 @@ stop_words = [
 'against', 's', 'or', 'own', 'into',
 'yourself', 'down', 'your',
 'from', 'her', 'their', 'there', 'been',
-'whom', 'too', 'themselves',
+'whom', 'too', 'themselves', 'the',
 'was', 'until', 'more', 'himself', 'that',
 'but', 'with', 'than', 'those', 'he',
 'me', 'myself', 'ma', 'these', 'up', 'will',
@@ -78,7 +78,7 @@ def sentence_filter(review_sentences,tokenizer='word'):
     for review in review_sentences:
         curr_rev = []
         # working on a single review with list of sentences
-        for sent in review_sents:
+        for sent in review:
             if tokenizer=='punct':
                 tok_sent = pwt.tokenize(sent)
             else:
@@ -91,16 +91,35 @@ def sentence_filter(review_sentences,tokenizer='word'):
 if __name__ == "__main__":
 
     if len(sys.argv)>=2:
-        filename = sys.argv[1]
+        source = sys.argv[1]
 
-    fobj = open(filename,'r')
-    reviews = eval(fobj.readline())
-    rl = len(reviews)
-    fobj.close()
+    if os.path.isdir(source):
+        if source[-1]!='/':
+            source += '/'
+        if not os.path.isdir('filtered_'+source):
+            os.mkdir('filtered_'+source)
+        filenames = os.listdir(source)
+        for filename in filenames:
+            fobj = open(source+filename,'r')
+            reviews = eval(fobj.readline())
+            rl = len(reviews)
+            fobj.close()
 
-    review_tok = sentence_tokenizer(reviews)
-    data = sentence_filter(review_tok)
+            review_tok = sentence_tokenizer(reviews)
+            data = sentence_filter(review_tok)
 
-    fobj = open('filtered_'+filename,'w')
-    fobj.write(str(data))
-    fobj.close()
+            fobj = open('filtered_'+source+filename,'w')
+            fobj.write(str(data))
+            fobj.close()
+    else:
+        fobj = open(source,'r')
+        reviews = eval(fobj.readline())
+        rl = len(reviews)
+        fobj.close()
+
+        review_tok = sentence_tokenizer(reviews)
+        data = sentence_filter(review_tok)
+
+        fobj = open('filtered_'+source,'w')
+        fobj.write(str(data))
+        fobj.close()
