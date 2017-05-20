@@ -11,6 +11,9 @@ from nltk.tokenize import word_tokenize
 import sys
 import os
 
+# nltk english dictionary containing all the possible words
+from nltk.corpus import words
+
 debugging = False
 
 # these will be used to remove extra words from
@@ -44,6 +47,17 @@ stop_words = [
 # ,'hadn','not','nor','didn','hasn','mustn','shouldn','couldn','isn','wasn',
 # 'aren','wouldn','mightn','weren','don','ain','doesn','needn','haven'
 ]
+
+"""
+check if the word is corrupted
+A corrupted word is TOTALLY MEANINGLESS.
+E.g. soooooooo, ***@#$53, grrrrreeeeaaaaatttt
+"""
+def is_corrupted_word(word):
+    # checking if the words has a meaning
+    if word in words.words():
+        return False
+    return True
 
 """
 Using stored nltk trained model
@@ -83,7 +97,7 @@ def sentence_filter(review_sentences,tokenizer='word'):
                 tok_sent = pwt.tokenize(sent)
             else:
                 tok_sent = word_tokenize(sent)
-            tok_sent = [x.lower() for x in tok_sent if len(x)>=3 and x not in stop_words]   # word filter
+            tok_sent = [x.lower() for x in tok_sent if len(x)>=3 and x not in stop_words and not is_corrupted_word(x)]   # word filter
             curr_rev.append(nltk.pos_tag(tok_sent)) # added tags
         res.append(curr_rev)
     return res
@@ -101,6 +115,11 @@ if __name__ == "__main__":
         filenames = os.listdir(source)
         for filename in filenames:
             fobj = open(source+filename,'r')
+
+            # Uncomment : in case using the previously calculated dataset
+            fobj.readline()   # for summaries
+            fobj.readline()   # for ratings
+
             reviews = eval(fobj.readline())
             rl = len(reviews)
             fobj.close()
