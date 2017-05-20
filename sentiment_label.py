@@ -55,7 +55,8 @@ def document_features(list_of_words):
     return features
 
 if __name__ == "__main__":
-    classifier = load_classifier('classifiers/naive_bayes_classifier.pickle')
+    # classifier 1000 is a model that uses 1000 word features
+    classifier = load_classifier('classifiers/naive_bayes_classifier_1000.pickle')
     filenames = os.listdir('filtered_demo_files')
     flog = open('labels_log.txt','w')
     flog.write("{")

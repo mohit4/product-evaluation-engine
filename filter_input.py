@@ -49,6 +49,7 @@ stop_words = [
 ]
 
 """
+NOTE : THIS CODE IS TIME COSTLY!!!
 check if the word is corrupted
 A corrupted word is TOTALLY MEANINGLESS.
 E.g. soooooooo, ***@#$53, grrrrreeeeaaaaatttt
@@ -83,7 +84,6 @@ I : tokenizer - ['punct','word'] default to word
 O : [[[w1,w2..wn],[w1,w2..wn],[w1,w2..wn]],[[w1,w2..wn],[w1,w2..wn],[w1,w2..wn]]...[[w1,w2..wn],[w1,w2..wn]]]
 
 every word w1,w2...wn is a pair that Contains the word and the part-of-speech tag
-
 """
 def sentence_filter(review_sentences,tokenizer='word'):
     # tokenizer used to tokenize based on punctuations
@@ -97,8 +97,13 @@ def sentence_filter(review_sentences,tokenizer='word'):
                 tok_sent = pwt.tokenize(sent)
             else:
                 tok_sent = word_tokenize(sent)
-            tok_sent = [x.lower() for x in tok_sent if len(x)>=3 and x not in stop_words and not is_corrupted_word(x)]   # word filter
-            curr_rev.append(nltk.pos_tag(tok_sent)) # added tags
+            tok_sent = [x.lower() for x in tok_sent if len(x)>=3 and x not in stop_words]   # word filter
+            # tag_sent = []
+            # for (w,p) in nltk.pos_tag(tag_sent):
+            #     if p.startswith("NN") and not is_corrupted_word(w):
+            #         tag_sent.append((w,p))
+            # curr_rev.append(tag_sent) # added tags
+            curr_rev.append(nltk.pos_tag(tok_sent))
         res.append(curr_rev)
     return res
 

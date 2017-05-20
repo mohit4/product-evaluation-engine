@@ -1,0 +1,3 @@
+['Looooooove', 'Cute!', 'GOOD', 'Dislike']
+[5.0, 5.0, 5.0, 1.0]
+['I just got my case and I love it! The studs could be straighter because there a bit crocked it not noticeable unless you inspect it like me. But over all I love it. The spikes are not too &#34;spikey&#34; so I love it.', "It's super cute and durable!! The spikes only fell off when I dropped it on the ground, which was my own fault. Other than that it held up great!", 'I got this as a gift for a friend & she really enjoyed it! It was greattttttttttt tttt tttt ttt', 'Received broken!!!!!!! I was so disappointed I really wanted it to be my favorite but I guess not not purchasing']
