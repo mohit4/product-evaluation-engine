@@ -8,7 +8,7 @@ Make sure you have python and nlkt installed on your system
 
 1. Python 2.7
 2. Python modules
-  * NLTK 3.0
+  * NLTK 3.0 (punkt, averaged_perceptron_tagger)
   * pickle
   * ast
 
