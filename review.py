@@ -14,6 +14,8 @@ __status__ = "Production"
 import nltk
 
 # Use the below commands to get it
+# pip install textblob
+# OR
 # $ pip install -U textblob
 # $ python -m textblob.download_corpora
 from textblob import TextBlob as TB
