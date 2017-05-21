@@ -29,9 +29,9 @@ class Review:
         # self.tokens = nltk.word_tokenize(self.text)
         # self.tags = nltk.pos_tag(self.tokens)
         self.tb = TB(self.text)
-        self.language = tb.detect_language()
-        self.subjectivity = tb.subjectivity
-        self.polarity = tb.polarity
+        # self.language = self.tb.detect_language()
+        self.subjectivity = self.tb.subjectivity
+        self.polarity = self.tb.polarity
 
     def get_tokens(self):
         """returns the list of all tokens including punctuations"""

@@ -2,6 +2,7 @@
 Processes a review using Review class and stores the result in json file
 """
 
+import os
 import json
 import sys
 from review import Review
@@ -10,13 +11,14 @@ debugging = True
 
 def allowed_tag(tag):
     """check if the tag is adjective, noun or adverb"""
-    if tag.startswith['JJ'] or tag.startswith['NN'] or tag.startswith['RB']:
+    if tag.startswith('JJ') or tag.startswith('NN') or tag.startswith('RB'):
         return True
     return False
 
 def generate_report(review,filename,category):
     """return a dictionary containing the review report"""
     rv = Review(review)
+    report = {}
     report["product_id"] = filename.split('.')[0]
     report["category"] = category
 
