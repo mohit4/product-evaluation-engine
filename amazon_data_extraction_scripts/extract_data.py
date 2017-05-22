@@ -4,6 +4,8 @@ extract_reviews.py : extract all the specified data such as ratings, summaries, 
 Usage :
     python extract_reviews.py <input_filename> <output_directory>
 
+    e.g. python amazon_data_extraction_scripts/extract_data.py reviews_Cell_Phones_and_Accessories_5.json.gz 
+
 Note :
     By default output_directory is assigned as the name of input zip file
 
