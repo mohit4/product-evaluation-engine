@@ -21,10 +21,9 @@ import sys
 import gzip
 
 def parse(path):
-    """used for parsing the json data stored inside the zip file"""
-	g = gzip.open(path,'r')
-	for l in g:
-		yield eval(l)
+    g = gzip.open(path,'r')
+    for l in g:
+        yield eval(l)
 
 if __name__ == "__main__":
 
@@ -35,7 +34,7 @@ if __name__ == "__main__":
         sys.exit(1)
 
     # here all of the dataset's data will be stored
-    dataset_directory = "../Filtered_Dataset/"
+    dataset_directory = "Filtered_Dataset/"
 
     # the zip file downloaded from amazon reviews data
     input_dataset = sys.argv[1]
@@ -45,7 +44,7 @@ if __name__ == "__main__":
     if len(sys.argv)==3:
         output_directory = sys.argv[2]
     else:
-        output_directory = input_dataset.split('.')[0]
+        output_directory = input_dataset.split('.')[-3]
 
     # handling an edge case
     if output_directory[-1]!='/':
@@ -93,9 +92,9 @@ if __name__ == "__main__":
                 fobj.close()
 
                 # reset the current buffers and set the id to current id
-                ratings.append(one_object['overall'])
-                reviewTexts.append(one_object['reviewText'])
-                summaries.append(one_object['summary'])
+                ratings = [one_object['overall']]
+                reviewTexts = [one_object['reviewText']]
+                summaries = [one_object['summary']]
                 product_id = one_object['asin']
     except StopIteration:
         # last values will still be in buffer
