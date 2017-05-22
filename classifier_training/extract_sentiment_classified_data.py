@@ -24,10 +24,10 @@ limit = 4000
 if __name__ == "__main__":
 
     # the location of extracted dataset
-    dataset_directory = "../Filtered_Dataset/"
+    dataset_directory = "Filtered_Dataset"
 
     # the location of classified reviews for model training
-    output_directory = "../Sentiment_Classifier_Training_Data/"
+    output_directory = "Sentiment_Classifier_Training_Data"
 
     # in case there is not Filtered_Dataset exit
     if not os.path.exists(dataset_directory):
@@ -63,7 +63,7 @@ if __name__ == "__main__":
         no_of_neg_reviews = 0
 
         # list all the files within this directory
-        filenames = os.listdir(dir_name)
+        filenames = os.listdir(dataset_directory+'/'+dir_name)
 
         # iterating over filenames
         for filename in filenames:
@@ -72,7 +72,7 @@ if __name__ == "__main__":
             if no_of_pos_reviews >= limit and no_of_neg_reviews >= limit:
                 break
 
-            fobj = open(output_directory+'/'+dir_name+'/'+filename,'r')
+            fobj = open(dataset_directory+'/'+dir_name+'/'+filename,'r')
             # discarding the summary
             fobj.readline()
             # getting current ratings
@@ -101,4 +101,3 @@ if __name__ == "__main__":
 
         # print appropriate message
         print "Extracted training data for",dir_name
-        
