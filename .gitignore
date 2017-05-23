@@ -1,7 +1,6 @@
 filtered_demo_files/
 labels_log.txt
 features_log.txt
-result.json
 review.pyc
 Filtered_Dataset/
 reviews_Cell_Phones_and_Accessories_5.json.gz

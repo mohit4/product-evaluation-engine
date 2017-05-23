@@ -13,6 +13,10 @@ __status__ = "Production"
 # for natural language text processing
 import nltk
 
+# for punctuation tokenizer
+from nltk.tokenize import WordPunctTokenizer as WPT
+wpt = WPT()
+
 # Use the below commands to get it
 # pip install textblob
 # OR
@@ -35,7 +39,7 @@ class Review:
 
     def get_tokens(self):
         """returns the list of all tokens including punctuations"""
-        return [w for w in self.tb.tokens]
+        return [w for w in wpt.tokenize(self.text)]
 
     def get_tags(self):
         """return the list of pair of word and pos tag"""
@@ -51,7 +55,8 @@ class Review:
 
     def get_features(self):
         """return a dictionary of noun along with a list of adjectives associated to it"""
-        tags = self.get_tags()
+        # tags = self.get_tags()
+        tags = nltk.pos_tag(self.get_tokens())
         noun_features = {}
         l = len(tags)
         for i in range(l):

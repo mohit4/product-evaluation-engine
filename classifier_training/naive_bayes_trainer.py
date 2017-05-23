@@ -14,8 +14,17 @@ import os
 import sys
 import re
 
+import nltk
+
+# managing and removing stopwords
+from nltk.corpus import stopwords
+
+# word punctuation tokenizer, it will extract all the punctuations as separate
 from nltk.tokenize import WordPunctTokenizer as WPT
 wpt = WPT()
+
+# sentence tokenizer using pretrained nltk model
+sentence_tokenizer = nltk.data.load('tokenizers/punkt/english.pickle')
 
 contractions = {
 "ain't": "are not",
@@ -152,9 +161,15 @@ def get_expanded(text):
         contractions[match.group(0)]
     return contractions_re.sub(replace, text.lower())
 
-def get_tokens(text):
-    """returns a list of tokens"""
-    tokens = [x for x in wpt.tokenize(text) if x.isalnum()]
+def filter_doc(doc):
+    """remove stopwords from a given doc"""
+    discarded = {'no','nor','not'}
+    stop = set(stopwords.words('english'))-discarded
+    return [[word for word in sent if word not in stop] for sent in doc]
+
+def get_doc(text):
+    """returns a list of lists of words, each word is alpha numeric"""
+    doc = [[x for x in wpt.tokenize(s) if x.isalnum() and len(x)>1] for s in sentence_tokenizer.tokenize(text)]
 
 if __name__ == "__main__":
 
