@@ -20,6 +20,7 @@ import nltk
 from nltk.corpus import stopwords
 
 # handling sentiment related tasks
+from nltk.classify import NaiveBayesClassifier
 from nltk.sentiment import SentimentAnalyzer
 from nltk.sentiment.util import *
 sentiment_analyzer = SentimentAnalyzer()
@@ -160,10 +161,24 @@ contractions = {
 # for matching the contractions words
 contractions_re = re.compile('(%s)' % '|'.join(contractions.keys()))
 
-def get_expanded(text):
+
+# this will extract the list of features from a document
+# returns a dictionary with the given format
+# <word1> : True
+# <word2> : False
+# ...
+# <wordn> : True
+def document_features(list_of_words,word_features):
+    document_words = set(list_of_words)
+    features = {}
+    for word in word_features:
+        features[word]=(word in list_of_words)
+    return features
+
+def get_expanded(text,contractions_dict=contractions):
     """accepts the text and return the text with contractions in expanded form"""
     def replace(match):
-        contractions[match.group(0)]
+        return contractions_dict[match.group(0)]
     return contractions_re.sub(replace, text.lower())
 
 def filter_doc(doc):
@@ -172,51 +187,99 @@ def filter_doc(doc):
     stop = set(stopwords.words('english'))-discarded
     return [[word for word in sent if word not in stop] for sent in doc]
 
-def mark_negation(doc):
+def get_negation(doc):
     """in order to handle the negation add _NEG"""
-    return sentim_analyzer.all_words([mark_negation(sent) for sent in doc])
+    return sentiment_analyzer.all_words([mark_negation(sent) for sent in doc])
 
 def get_doc(text):
     """returns a list of lists of words, each word is alpha numeric"""
-    doc = [[x for x in wpt.tokenize(s) if x.isalnum() and len(x)>1] for s in sentence_tokenizer.tokenize(text)]
+    return [[x for x in wpt.tokenize(s) if x.isalnum() and len(x)>1] for s in sentence_tokenizer.tokenize(text)]
 
-if __name__ == "__main__":
+def remove_small(doc):
+    """remove words smaller than equal to 3"""
+    return [w for w in doc if len(w)>=3]
 
-    # the location of classified reviews for model training
-    dataset_directory = "Sentiment_Classifier_Training_Data"
+def save_classifier(classifier,filename):
+    """saving the classifier"""
+    f = open(filename+'.pickle','wb')
+    pickle.dump(classifier,f)
+    f.close()
+    print "classifier saved!"
 
-    # the directory where the classifier will be stored
-    output_directory = "classifiers"
+# for demo purpose only
+dataset_directory = "Sentiment_Classifier_Training_Data"
+dir_name = os.listdir(dataset_directory)[0]
+fobj1 = open(dataset_directory+'/'+dir_name+'/'+'pos_reviews.txt','r')
+pos_reviews = eval(fobj1.readline())
+fobj1.close()
+fobj2 = open(dataset_directory+'/'+dir_name+'/'+'neg_reviews.txt','r')
+neg_reviews = eval(fobj2.readline())
+fobj2.close()
 
-    # in case there is not Sentiment_Classifier_Training_Data exit
-    if not os.path.exists(dataset_directory):
-        print "Sentiment_Classifier_Training_Data not found! Please execute classifier_training/extract_sentiment_classified_data.py"
-        sys.exit(1)
+pos_docs = [( remove_small(get_negation(filter_doc(get_doc(get_expanded(sent))))) ,'pos') for sent in pos_reviews]
+neg_docs = [( remove_small(get_negation(filter_doc(get_doc(get_expanded(sent))))) ,'neg') for sent in neg_reviews]
 
-    # list the name of directories withing the dataset
-    # each directory corresponds to a single category of products
-    dir_names = os.listdir(dataset_directory)
+training_docs = pos_docs[:3200] + neg_docs[:3200]
+testing_docs = pos_docs[3200:] + neg_docs[3200:]
 
-    # in case there is nothing within the Filtered_Dataset
-    if len(dir_names)==0:
-        print "No data to process! Exiting."
-        sys.exit(1)
+all_words_neg = sentiment_analyzer.all_words([w for (w,p) in training_docs])
 
-    # make appropriate directories in case they don't exists
-    if not os.path.exists(output_directory):
-        os.mkdir(output_directory)
+# unigram_feats = sentiment_analyzer.unigram_word_feats(all_words_neg, min_freq=4)
 
-    # now working on each directory withing the Filtered_Dataset
-    for dir_name in dir_names:
+word_features = nltk.FreqDist(all_words_neg)
 
-        # fetching positive reviews
-        fobj1 = open(dataset_directory+'/'+dir_name+'/'+'pos_file.txt','r')
-        pos_reviews = eval(fobj1.readline())
-        fobj1.close()
+import operator
 
-        # fetching negative reviews
-        fobj2 = open(dataset_directory+'/'+dir_name+'/'+'neg_file.txt','r')
-        neg_reviews = eval(fobj2.readline())
-        fobj2.close()
+values  = sorted(word_features.items(),key=operator.itemgetter(1))[-2000:]
 
-        #
+feature_set = [(document_features(d,values),c) for (d,c) in training_docs]
+
+classifier = NaiveBayesClassifier.train(feature_set)
+
+print "Training done!"
+
+feature_set = [(document_features(d,values),c) for (d,c) in testing_docs]
+
+acc = nltk.classify.accuracy(classifier, feature_set)
+print "accuracy :",acc
+
+# if __name__ == "__main__":
+#
+#     # the location of classified reviews for model training
+#     dataset_directory = "Sentiment_Classifier_Training_Data"
+#
+#     # the directory where the classifier will be stored
+#     output_directory = "classifiers"
+#
+#     # in case there is not Sentiment_Classifier_Training_Data exit
+#     if not os.path.exists(dataset_directory):
+#         print "Sentiment_Classifier_Training_Data not found! Please execute classifier_training/extract_sentiment_classified_data.py"
+#         sys.exit(1)
+#
+#     # list the name of directories withing the dataset
+#     # each directory corresponds to a single category of products
+#     dir_names = os.listdir(dataset_directory)
+#
+#     # in case there is nothing within the Filtered_Dataset
+#     if len(dir_names)==0:
+#         print "No data to process! Exiting."
+#         sys.exit(1)
+#
+#     # make appropriate directories in case they don't exists
+#     if not os.path.exists(output_directory):
+#         os.mkdir(output_directory)
+#
+#     # now working on each directory withing the Filtered_Dataset
+#     for dir_name in dir_names:
+#
+#         # fetching positive reviews
+#         fobj1 = open(dataset_directory+'/'+dir_name+'/'+'pos_file.txt','r')
+#         pos_reviews = eval(fobj1.readline())
+#         fobj1.close()
+#
+#         # fetching negative reviews
+#         fobj2 = open(dataset_directory+'/'+dir_name+'/'+'neg_file.txt','r')
+#         neg_reviews = eval(fobj2.readline())
+#         fobj2.close()
+#
+#         #
