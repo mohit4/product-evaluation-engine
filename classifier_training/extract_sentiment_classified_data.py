@@ -54,12 +54,12 @@ if __name__ == "__main__":
         if not os.path.exists(output_directory+'/'+dir_name):
             os.mkdir(output_directory+'/'+dir_name)
 
-        # create the output files containing positive and negative reviews
-        pos_file = open(output_directory+'/'+dir_name+'/'+'pos_reviews.txt','w')
-        pos_file.write("[")
+        # create the list for carrying positive and negative reviews
+        pos_reviews = []
+        neg_reviews = []
+
+        # controlling the count of positive and negative reviews
         no_of_pos_reviews = 0
-        neg_file = open(output_directory+'/'+dir_name+'/'+'neg_reviews.txt','w')
-        neg_file.write("[")
         no_of_neg_reviews = 0
 
         # list all the files within this directory
@@ -85,18 +85,20 @@ if __name__ == "__main__":
                 if no_of_pos_reviews >= limit and no_of_neg_reviews >= limit:
                     break
                 if is_label_positive(ratings[i]) and no_of_pos_reviews<limit:
-                    # write the review text into positive file and increment the no of pos reviews
-                    pos_file.write("\"%s\","%(reviews[i]))
+                    # write the review text into positive reviews and increment the no of pos reviews
+                    pos_reviews.append(reviews[i])
                     no_of_pos_reviews+=1
                 elif no_of_neg_reviews<limit:
-                    # write the review text into negative file and increment the no of neg reviews
-                    neg_file.write("\"%s\","%(reviews[i]))
+                    # write the review text into negative reviews and increment the no of neg reviews
+                    neg_reviews.append(reviews[i])
                     no_of_neg_reviews+=1
 
         # complete the file writing and close the resources
-        pos_file.write("\b]")
+        pos_file = open(output_directory+'/'+dir_name+'/'+'pos_reviews.txt','w')
+        pos_file.write(str(pos_reviews))
         pos_file.close()
-        neg_file.write("\b]")
+        neg_file = open(output_directory+'/'+dir_name+'/'+'neg_reviews.txt','w')
+        neg_file.write(str(neg_reviews))
         neg_file.close()
 
         # print appropriate message
