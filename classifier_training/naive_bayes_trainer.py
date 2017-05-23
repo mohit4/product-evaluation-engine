@@ -19,6 +19,11 @@ import nltk
 # managing and removing stopwords
 from nltk.corpus import stopwords
 
+# handling sentiment related tasks
+from nltk.sentiment import SentimentAnalyzer
+from nltk.sentiment.util import *
+sentiment_analyzer = SentimentAnalyzer()
+
 # word punctuation tokenizer, it will extract all the punctuations as separate
 from nltk.tokenize import WordPunctTokenizer as WPT
 wpt = WPT()
@@ -156,7 +161,7 @@ contractions = {
 contractions_re = re.compile('(%s)' % '|'.join(contractions.keys()))
 
 def get_expanded(text):
-    """accepts the text and return the text into expanded form"""
+    """accepts the text and return the text with contractions in expanded form"""
     def replace(match):
         contractions[match.group(0)]
     return contractions_re.sub(replace, text.lower())
@@ -166,6 +171,10 @@ def filter_doc(doc):
     discarded = {'no','nor','not'}
     stop = set(stopwords.words('english'))-discarded
     return [[word for word in sent if word not in stop] for sent in doc]
+
+def mark_negation(doc):
+    """in order to handle the negation add _NEG"""
+    return sentim_analyzer.all_words([mark_negation(sent) for sent in doc])
 
 def get_doc(text):
     """returns a list of lists of words, each word is alpha numeric"""
