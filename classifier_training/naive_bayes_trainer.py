@@ -292,3 +292,7 @@ if __name__ == "__main__":
 
         # finally save the classifier in specified location
         save_classifier(classifier,output_directory+'/'+dir_name)
+
+        # also the word features as they'll be required at the time of classification
+        fobj = open(output_directory+'/'+dir_name+'_features.txt','w')
+        fobj.write(str(word_features))
