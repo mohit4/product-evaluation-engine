@@ -1,5 +1,5 @@
 """
-extract_sentiment_classified_data.py : this script is used to access the Filtered_Dataset
+extract_sentiment_classified_textblob.py : this script is used to access the Filtered_Dataset
     and extract and list the pos and neg reviews for training dataset of
     sentiment classifier based on TextBlob
 """
@@ -16,12 +16,14 @@ import sys
 from textblob import TextBlob as TB
 
 def is_label_positive(reviewText):
+    """return True if the review has a polarity higher than 0.10"""
     tb = TB(reviewText)
     if tb.polarity >= 0.10:
         return True
     return False
 
 def is_label_subjective(reviewText):
+    """return True if the review is highly subjective"""
     tb = TB(reviewText)
     if tb.subjectivity >= 0.50:
         return True
@@ -83,9 +85,9 @@ if __name__ == "__main__":
             fobj = open(dataset_directory+'/'+dir_name+'/'+filename,'r')
             # discarding the summary
             fobj.readline()
-            # getting current ratings
-            ratings = eval(fobj.readline())
-            # and the review text
+            # and the ratings
+            fobj.readline()
+            # fetching the review text
             reviews = eval(fobj.readline())
             no_of_reviews = len(ratings)
 
