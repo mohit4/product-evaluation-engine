@@ -20,6 +20,9 @@ import nltk
 from nltk.tokenize import WordPunctTokenizer as WPT
 wpt = WPT()
 
+# sentence tokenizer using pretrained nltk model
+sentence_tokenizer = nltk.data.load('tokenizers/punkt/english.pickle')
+
 # Use the below commands to get it
 # pip install textblob
 # OR
@@ -162,8 +165,11 @@ class Review:
         # super(Review, self).__init__()
         # self.arg = arg
         self.text = review_text.lower()
-        # self.tokens = nltk.word_tokenize(self.text)
-        # self.tags = nltk.pos_tag(self.tokens)
+        # added expansion by default
+        self.set_expanded()
+        # added docs for the review
+        self.doc = [[x for x in wpt.tokenize(s) if x.isalnum() and len(x)>1] for s in sentence_tokenizer.tokenize(self.text)]
+        # added textblob for sentiment values
         self.tb = TB(self.text)
         # self.language = self.tb.detect_language()
         self.subjectivity = self.tb.subjectivity
