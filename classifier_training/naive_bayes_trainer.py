@@ -13,6 +13,7 @@ __status__ = "Production"
 import os
 import sys
 import re
+import operator
 
 import nltk
 
@@ -197,7 +198,7 @@ def get_doc(text):
 
 def remove_small(doc):
     """remove words smaller than equal to 3"""
-    return [w for w in doc if len(w)>=3]
+    return [w for w in doc if (w.endswith("_NEG") and (len(w)-4)>3) or (len(w)>3)]
 
 def save_classifier(classifier,filename):
     """saving the classifier"""
@@ -206,80 +207,88 @@ def save_classifier(classifier,filename):
     f.close()
     print "classifier saved!"
 
-# for demo purpose only
-dataset_directory = "Sentiment_Classifier_Training_Data"
-dir_name = os.listdir(dataset_directory)[0]
-fobj1 = open(dataset_directory+'/'+dir_name+'/'+'pos_reviews.txt','r')
-pos_reviews = eval(fobj1.readline())
-fobj1.close()
-fobj2 = open(dataset_directory+'/'+dir_name+'/'+'neg_reviews.txt','r')
-neg_reviews = eval(fobj2.readline())
-fobj2.close()
-
-pos_docs = [( remove_small(get_negation(filter_doc(get_doc(get_expanded(sent))))) ,'pos') for sent in pos_reviews]
-neg_docs = [( remove_small(get_negation(filter_doc(get_doc(get_expanded(sent))))) ,'neg') for sent in neg_reviews]
-
-training_docs = pos_docs[:3200] + neg_docs[:3200]
-testing_docs = pos_docs[3200:] + neg_docs[3200:]
-
-all_words_neg = sentiment_analyzer.all_words([w for (w,p) in training_docs])
+# # for demo purpose only
+# dataset_directory = "Sentiment_Classifier_Training_Data"
+# dir_name = os.listdir(dataset_directory)[0]
+# fobj1 = open(dataset_directory+'/'+dir_name+'/'+'pos_reviews.txt','r')
+# pos_reviews = eval(fobj1.readline())
+# fobj1.close()
+# fobj2 = open(dataset_directory+'/'+dir_name+'/'+'neg_reviews.txt','r')
+# neg_reviews = eval(fobj2.readline())
+# fobj2.close()
 
 # unigram_feats = sentiment_analyzer.unigram_word_feats(all_words_neg, min_freq=4)
 
-word_features = nltk.FreqDist(all_words_neg)
+if __name__ == "__main__":
 
-import operator
+    # the location of classified reviews for model training
+    dataset_directory = "Sentiment_Classifier_Training_Data"
 
-values  = sorted(word_features.items(),key=operator.itemgetter(1))[-2000:]
+    # the directory where the classifier will be stored
+    output_directory = "saved_classifiers"
 
-feature_set = [(document_features(d,values),c) for (d,c) in training_docs]
+    # in case there is not Sentiment_Classifier_Training_Data exit
+    if not os.path.exists(dataset_directory):
+        print "Sentiment_Classifier_Training_Data not found! Please execute classifier_training/extract_sentiment_classified_data.py"
+        sys.exit(1)
 
-classifier = NaiveBayesClassifier.train(feature_set)
+    # list the name of directories withing the dataset
+    # each directory corresponds to a single category of products
+    dir_names = os.listdir(dataset_directory)
 
-print "Training done!"
+    # in case there is nothing within the Filtered_Dataset
+    if len(dir_names)==0:
+        print "No data to process! Exiting."
+        sys.exit(1)
 
-feature_set = [(document_features(d,values),c) for (d,c) in testing_docs]
+    # make appropriate directories in case they don't exists
+    if not os.path.exists(output_directory):
+        os.mkdir(output_directory)
 
-acc = nltk.classify.accuracy(classifier, feature_set)
-print "accuracy :",acc
+    # now working on each directory withing the Filtered_Dataset
+    for dir_name in dir_names:
 
-# if __name__ == "__main__":
-#
-#     # the location of classified reviews for model training
-#     dataset_directory = "Sentiment_Classifier_Training_Data"
-#
-#     # the directory where the classifier will be stored
-#     output_directory = "classifiers"
-#
-#     # in case there is not Sentiment_Classifier_Training_Data exit
-#     if not os.path.exists(dataset_directory):
-#         print "Sentiment_Classifier_Training_Data not found! Please execute classifier_training/extract_sentiment_classified_data.py"
-#         sys.exit(1)
-#
-#     # list the name of directories withing the dataset
-#     # each directory corresponds to a single category of products
-#     dir_names = os.listdir(dataset_directory)
-#
-#     # in case there is nothing within the Filtered_Dataset
-#     if len(dir_names)==0:
-#         print "No data to process! Exiting."
-#         sys.exit(1)
-#
-#     # make appropriate directories in case they don't exists
-#     if not os.path.exists(output_directory):
-#         os.mkdir(output_directory)
-#
-#     # now working on each directory withing the Filtered_Dataset
-#     for dir_name in dir_names:
-#
-#         # fetching positive reviews
-#         fobj1 = open(dataset_directory+'/'+dir_name+'/'+'pos_file.txt','r')
-#         pos_reviews = eval(fobj1.readline())
-#         fobj1.close()
-#
-#         # fetching negative reviews
-#         fobj2 = open(dataset_directory+'/'+dir_name+'/'+'neg_file.txt','r')
-#         neg_reviews = eval(fobj2.readline())
-#         fobj2.close()
-#
-#         #
+        # fetching positive reviews
+        fobj1 = open(dataset_directory+'/'+dir_name+'/'+'pos_reviews.txt','r')
+        pos_reviews = eval(fobj1.readline())
+        fobj1.close()
+
+        # fetching negative reviews
+        fobj2 = open(dataset_directory+'/'+dir_name+'/'+'neg_reviews.txt','r')
+        neg_reviews = eval(fobj2.readline())
+        fobj2.close()
+
+        # generating filtered docs
+        pos_docs = [( remove_small(get_negation(filter_doc(get_doc(get_expanded(sent))))) ,'pos') for sent in pos_reviews]
+        neg_docs = [( remove_small(get_negation(filter_doc(get_doc(get_expanded(sent))))) ,'neg') for sent in neg_reviews]
+
+        # partitioning the docs into training and testing
+        training_docs = pos_docs[:3200] + neg_docs[:3200]
+        testing_docs = pos_docs[3200:] + neg_docs[3200:]
+
+        # fetching all the words which will make the most_frequent_features.txt
+        # all_words_neg = sentiment_analyzer.all_words([w for (w,p) in training_docs])
+
+        # distributing words based on frequency
+        word_features = nltk.FreqDist(sentiment_analyzer.all_words([w for (w,p) in training_docs]))
+
+        # then taking the values keys which are most frequent
+        word_features  = sorted(word_features.items(),key=operator.itemgetter(1))[-2000:]
+
+        # generating the feature set based on the word_features
+        feature_set = [(document_features(d,word_features),c) for (d,c) in training_docs]
+
+        # selecting and training the NaiveBayesClassifier from nltk packages
+        classifier = NaiveBayesClassifier.train(feature_set)
+
+        print "Training done!"
+
+        # generating feature set for testing docs
+        feature_set = [(document_features(d,word_features),c) for (d,c) in testing_docs]
+
+        # calculating and printing the accuracy
+        acc = nltk.classify.accuracy(classifier, feature_set)
+        print "accuracy :",acc
+
+        # finally save the classifier in specified location
+        save_classifier(classifier,output_directory+'/'+dir_name)
