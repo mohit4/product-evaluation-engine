@@ -169,11 +169,11 @@ class Review:
         self.subjectivity = self.tb.subjectivity
         self.polarity = self.tb.polarity
 
-    def get_expanded(self, contractions_dict=contractions):
+    def set_expanded(self, contractions_dict=contractions):
         """accepts the text and return the text with contractions in expanded form"""
         def replace(match):
             return contractions_dict[match.group(0)]
-        return contractions_re.sub(replace, self.text)
+        self.text = contractions_re.sub(replace, self.text)
 
     def get_tokens(self):
         """returns the list of all tokens including punctuations"""

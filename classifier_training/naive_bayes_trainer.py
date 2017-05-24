@@ -274,6 +274,7 @@ if __name__ == "__main__":
 
         # then taking the values keys which are most frequent
         word_features  = sorted(word_features.items(),key=operator.itemgetter(1))[-2000:]
+        word_features = [x for (x,y) in word_features]
 
         # generating the feature set based on the word_features
         feature_set = [(document_features(d,word_features),c) for (d,c) in training_docs]
