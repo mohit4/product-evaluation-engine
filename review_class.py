@@ -204,25 +204,32 @@ class Review:
         self.doc = [[word for word in sent if word not in stop] for sent in self.doc]
 
     def get_tokens(self):
-        """returns the list of all tokens including punctuations"""
-        return [w for w in wpt.tokenize(self.text)]
+        """returns the list of all tokens filtered punctuations"""
+        tokens = [[x for x in wpt.tokenize(s) if x.isalnum() and len(x)>1] for s in sentence_tokenizer.tokenize(self.text)]
+        return tokens
 
     def get_tags(self):
         """return the list of pair of word and pos tag"""
-        return [p for p in self.tb.tags]
+        tokens = self.get_tokens()
+        return [nltk.pos_tag(x) for x in tokens]
 
     def translate(self,from_lang,to_lang=u'en'):
         """translate the current text to specified language"""
         self.tb = self.tb.translate(from_lang,to_lang)
 
     def get_sentences(self):
-        """returns a list of list of pair of words,pos-tag"""
-        return [list(TB(str(y)).tags) for y in self.tb.sentences]
+        """returns a list sentences"""
+        return [s for s in sentence_tokenizer.tokenize(self.text)]
 
     def get_features(self):
         """return a dictionary of noun along with a list of adjectives associated to it"""
         # tags = self.get_tags()
-        tags = nltk.pos_tag(self.get_tokens())
+        tokens = self.get_tokens()
+        words_neg = sentiment_analyzer.all_words([mark_negation(sent) for sent in tokens])
+        tokens = [item for sublist in tokens for item in sublist]
+        only_tags = [p for (w,p) in nltk.pos_tag(tokens)]
+        ln = len(words_neg)
+        tags = [(words_neg[i],only_tags[i]) for i in range(ln)]
         noun_features = {}
         l = len(tags)
         for i in range(l):
@@ -243,6 +250,8 @@ class Review:
                     closest_noun = "this_product"
                 else:
                     closest_noun = tags[cl_n_i][0]
+                    if closest_noun.endswith("_NEG"):
+                        closest_noun = closest_noun[:-4]
 
                 # adding the noun features
                 if not noun_features.has_key(closest_noun):
