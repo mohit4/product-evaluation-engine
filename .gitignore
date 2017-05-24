@@ -1,7 +1,7 @@
 filtered_demo_files/
 labels_log.txt
 features_log.txt
-review.pyc
+review_class.pyc
 Filtered_Dataset/
 reviews_Cell_Phones_and_Accessories_5.json.gz
 Sentiment_Classifier_Training_Data
