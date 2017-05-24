@@ -16,12 +16,20 @@ import re
 # for natural language text processing
 import nltk
 
+# managing and removing stopwords
+from nltk.corpus import stopwords
+
 # for punctuation tokenizer
 from nltk.tokenize import WordPunctTokenizer as WPT
 wpt = WPT()
 
 # sentence tokenizer using pretrained nltk model
 sentence_tokenizer = nltk.data.load('tokenizers/punkt/english.pickle')
+
+# handling sentiment related tasks
+from nltk.sentiment import SentimentAnalyzer
+from nltk.sentiment.util import *
+sentiment_analyzer = SentimentAnalyzer()
 
 # Use the below commands to get it
 # pip install textblob
@@ -180,6 +188,20 @@ class Review:
         def replace(match):
             return contractions_dict[match.group(0)]
         self.text = contractions_re.sub(replace, self.text)
+
+    def set_negation(self):
+        """in order to handle the negation add _NEG"""
+        self.doc = sentiment_analyzer.all_words([mark_negation(sent) for sent in self.doc])
+
+    def remove_small(self):
+        """remove words smaller than equal to 3 use only after set_negation"""
+        self.doc = [w for w in self.doc if (w.endswith("_NEG") and (len(w)-4)>3) or (len(w)>3)]
+
+    def filter_doc(self):
+        """remove stopwords from a given doc use only before set_negation"""
+        discarded = {'no','nor','not'}
+        stop = set(stopwords.words('english'))-discarded
+        self.doc = [[word for word in sent if word not in stop] for sent in self.doc]
 
     def get_tokens(self):
         """returns the list of all tokens including punctuations"""
