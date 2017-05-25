@@ -1,29 +1,44 @@
 """
 feed_database.py : script that uses the generated classifier in earlier stages to classify the
     dataset and generate reports.
-
-Report format example :
-
-{
-    "product_id" : B000BHAUSE,
-    "category" : "reviews_Cell_Phones_and_Accessories_5",
-    "sentiment" : 'pos',
-    "sentiment_score" : 0.6787,
-    "text" : "this is a really great product, i have not seen anything like it. awesome...",
-    "label" : "subjective"
-    "tb_subjectivity" : 0.7820,
-    "features" : {
-        "battery" : {
-            "adjectives" : ["good"],
-            "score" : 0.45
-        },
-        "camera" : {
-        
-        }
-    }
-}
-
 """
+
+# database schema :
+#
+# collection : reviews
+#     {
+#         "product_id" : "B00BHAUSE",
+#         "category" : "reviews_Cell_Phones_and_Accessories_5",
+#         "text" : "good product, i used it for a while ...",
+#         "label" : "subjective"/"objective",
+#         "subjectivity" : 0.7890,
+#
+#         # this can be or cannot be present based on the label
+#         "sentiment" : "pos",
+#         "sentiment_score" : 0.8490
+#     }
+#
+# collection : product
+#     {
+#         "product_id" : "B00BHAUSE",
+#         "category" : "reviews_Cell_Phones_and_Accessories_5",
+#         "total_reviews" : 423,
+#         "subjective_reviews" : 301,
+#         "objective_reviews" : 122,
+#         "positive_reviews" : 275,
+#         "negative_reviews" : 126,
+#         "tags" : ["iphone","camera","working","good"...],
+#         "features" : {
+#             "battery" : {
+#                 "reviews" : ["not working","quality"],
+#                 "score" : 0.5678
+#             },
+#             "camera" : {
+#                 "reviews" : ["great","awesome"],
+#                 "score" : 0.8680
+#             }
+#         }
+#     }
 
 # Credits
 __author__ = "Mohit Kumar"
@@ -48,7 +63,8 @@ client = MongoClient()
 db = client['mydb']
 
 # accessing the collection
-coll = db['mycoll']
+review_collection = db['reviews']
+product_collection = db['product']
 
 # reloads the classifier in memory
 def load_classifier(pickle_file):
@@ -128,13 +144,32 @@ if __name__ == "__main__":
             # close file resource
             fobj.close()
 
+            # creating product report
+            product_report = {}
+
+            # adding filename and category to it
+            product_report["product_id"] = filename.split('.')[0]
+            product_report["category"] = dirname
+
+            # adding other additional data
+            product_report["total_reviews"] = 0
+            product_report["subjective_reviews"] = 0
+            product_report["objective_reviews"] = 0
+            product_report["positive_reviews"] = 0
+            product_report["negative_reviews"] = 0
+            product_report["keywords"] = []
+            product_report["features"] = {}
+
             # process each of the reviews
             for review in reviews:
+
+                # incrementing total reviews
+                product_report["total_reviews"] += 1
 
                 # create a review object class
                 rv_obj = Review(review)
 
-                # creating a report
+                # creating review report
                 review_report = {}
 
                 # adding filename and category to it
@@ -146,12 +181,25 @@ if __name__ == "__main__":
                 rv_obj.set_negation()
                 rv_obj.remove_small()
 
-                # if the review is not subjective then don't do classification on it
+                # adding other additional data
+                review_report["text"] = rv_obj.text
+
+                # if the review is subjective then do classification on it
                 if rv_obj.subjectivity >= 0.50:
+                    # incrementing no of subjective reviews
+                    product_report["subjective_reviews"] = 0
 
                     # getting the label and the associated probability
                     feats = document_features(rv_obj.doc,word_features)
-                    sentiment_label = classifier.classify(feats)
-                    sentiment_label_prob = classifier.classify(feats)
-                    review_report["sentiment"] = sentiment_label
-                    review_report["sentiment_score"] = sentiment_label_prob
+                    review_report["sentiment"] = classifier.classify(feats)
+                    review_report["sentiment_score"] = classifier.classify(feats)
+
+                    # increment the positive negative count accordingly
+                    if review_report["sentiment"] == "pos":
+                        product_report["positive_reviews"] += 1
+                    else:
+                        product_report["negative_reviews"] += 1
+                    review_report["label"] = "subjective"
+                else:
+                    review_report["label"] = "objective"
+                    product_report["objective_reviews"] += 1
