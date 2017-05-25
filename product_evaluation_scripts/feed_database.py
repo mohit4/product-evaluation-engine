@@ -48,23 +48,27 @@ __email__ = "mohitkumar2801@gmail.com"
 __status__ = "Production"
 
 import os
+import sys
 import pickle
+from pprint import pprint
 
 debugging = False
 
+from textblob import TextBlob as TB
+
 # used to access the mongodb database
-from pymongo import MongoClient
+# from pymongo import MongoClient
 from review_class import Review
-
-# client to access the database, defaults to localhost:27017
-client = MongoClient()
-
-# accessing the database using its name
-db = client['mydb']
+#
+# # client to access the database, defaults to localhost:27017
+# client = MongoClient()
+#
+# # accessing the database using its name
+# db = client['mydb']
 
 # accessing the collection
-review_collection = db['reviews']
-product_collection = db['product']
+# review_collection = db['reviews']
+# product_collection = db['product']
 
 # reloads the classifier in memory
 def load_classifier(pickle_file):
@@ -81,6 +85,20 @@ def allowed_tag(tag):
         return True
     return False
 
+def remove_neg(list_of_words):
+    """transform the words having _NEG as suffix"""
+    res = []
+    for word in list_of_words:
+        if word.endswith("_NEG"):
+            res.append("not "+word[:-4])
+        else:
+            res.append(word)
+    return res
+
+def adjust_score(float_value):
+    """accept the value between -1 and 1 and return a value between 0 and 10 with adjusted precision"""
+    return float("%.2f"%((float_value+1)*5.0))
+
 # document feature extractor for classifier
 def document_features(list_of_words,word_features):
     """returns the mapped list of words with true/false values"""
@@ -90,25 +108,14 @@ def document_features(list_of_words,word_features):
         features['contains(%s)'%word] = (word in list_of_words)
     return features
 
-def generate_report(report_pack):
-    """return a dictionary containing the review report"""
-
-    report["features"] = rv.get_features()
-    report["score"] = rv.tb.polarity
-    report["subjectivity"] = rv.tb.subjectivity
-
-    tags = [w for (w,p) in rv.get_tags() if allowed_tag(p)]
-    report["keywords"] = tags
-
-    if debugging:
-        print "Generated report for :"+report["product_id"]
-
-    return report
+def word_score(word):
+    tb = TB(word)
+    return tb.polarity
 
 if __name__ == "__main__":
 
     # dataset directory
-    dataset_directory = "../Filtered_Dataset"
+    dataset_directory = "Filtered_Dataset"
 
     # check if the filtered dataset exists
     if not os.path.exists(dataset_directory):
@@ -130,7 +137,7 @@ if __name__ == "__main__":
         feat_obj.close()
 
         # list all the files of this directory/product category
-        filenames = os.listdir(dataset_directory+'/'+dirname,'r')
+        filenames = os.listdir(dataset_directory+'/'+dirname)
 
         for filename in filenames:
 
@@ -160,6 +167,8 @@ if __name__ == "__main__":
             product_report["keywords"] = []
             product_report["features"] = {}
 
+            keywords = []
+
             # process each of the reviews
             for review in reviews:
 
@@ -184,6 +193,11 @@ if __name__ == "__main__":
                 # adding other additional data
                 review_report["text"] = rv_obj.text
 
+                # adding tags to keywords
+                demo = rv_obj.get_tags()
+                print len(demo)
+                keywords.extend([w for (w,p) in demo if allowed_tag(p)])
+
                 # if the review is subjective then do classification on it
                 if rv_obj.subjectivity >= 0.50:
                     # incrementing no of subjective reviews
@@ -203,3 +217,24 @@ if __name__ == "__main__":
                 else:
                     review_report["label"] = "objective"
                     product_report["objective_reviews"] += 1
+
+                # getting the features from a review
+                product_features = rv_obj.get_features()
+
+                # if there are any product features
+                for k in product_features:
+                    if product_report["features"].has_key(k):
+                        product_report["features"][k].extend(product_features[k])
+                    else:
+                        product_report["features"][k]=product_features[k]
+
+            # iterate and redefine the values within the product report
+            for feature in product_report["features"]:
+                temp = remove_neg(product_report["features"][feature])
+                product_report["features"][feature] = {"review":list(set(temp)),"score":adjust_score(word_score(" ".join(temp)))}
+
+            # adding keywords
+            product_report["keywords"] = list(set(keywords))
+
+            pprint(product_report)
+            sys.exit(0)
