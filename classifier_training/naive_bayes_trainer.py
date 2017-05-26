@@ -262,9 +262,13 @@ if __name__ == "__main__":
         pos_docs = [( remove_small(get_negation(filter_doc(get_doc(get_expanded(sent))))) ,'pos') for sent in pos_reviews]
         neg_docs = [( remove_small(get_negation(filter_doc(get_doc(get_expanded(sent))))) ,'neg') for sent in neg_reviews]
 
+        # training and testing ratio is 80:20
+        ln = len(pos_reviews)+len(neg_reviews)
+        training_ratio = int(0.80*ln)
+
         # partitioning the docs into training and testing
-        training_docs = pos_docs[:3200] + neg_docs[:3200]
-        testing_docs = pos_docs[3200:] + neg_docs[3200:]
+        training_docs = pos_docs[:training_ratio] + neg_docs[:training_ratio]
+        testing_docs = pos_docs[training_ratio:] + neg_docs[training_ratio:]
 
         # fetching all the words which will make the most_frequent_features.txt
         # all_words_neg = sentiment_analyzer.all_words([w for (w,p) in training_docs])
