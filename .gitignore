@@ -7,3 +7,6 @@ reviews_Cell_Phones_and_Accessories_5.json.gz
 Sentiment_Classifier_Training_Data
 xtra.txt
 data_store.py
+mongodb_exports.zip
+products.json
+reviews.json

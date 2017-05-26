@@ -57,18 +57,18 @@ debugging = False
 from textblob import TextBlob as TB
 
 # used to access the mongodb database
-# from pymongo import MongoClient
+from pymongo import MongoClient
 from review_class import Review
-#
-# # client to access the database, defaults to localhost:27017
-# client = MongoClient()
-#
-# # accessing the database using its name
-# db = client['mydb']
+
+# client to access the database, defaults to localhost:27017
+client = MongoClient()
+
+# accessing the database using its name
+db = client['mydb']
 
 # accessing the collection
-# review_collection = db['reviews']
-# product_collection = db['product']
+review_collection = db['reviews']
+product_collection = db['products']
 
 # reloads the classifier in memory
 def load_classifier(pickle_file):
@@ -193,20 +193,20 @@ if __name__ == "__main__":
                 # adding other additional data
                 review_report["text"] = rv_obj.text
 
-                # adding tags to keywords
-                demo = rv_obj.get_tags()
-                print len(demo)
-                keywords.extend([w for (w,p) in demo if allowed_tag(p)])
-
                 # if the review is subjective then do classification on it
                 if rv_obj.subjectivity >= 0.50:
                     # incrementing no of subjective reviews
-                    product_report["subjective_reviews"] = 0
+                    product_report["subjective_reviews"] += 1
 
                     # getting the label and the associated probability
                     feats = document_features(rv_obj.doc,word_features)
-                    review_report["sentiment"] = classifier.classify(feats)
-                    review_report["sentiment_score"] = classifier.classify(feats)
+                    # review_report["sentiment"] = classifier.classify(feats)
+                    # review_report["sentiment_score"] = classifier.classify(feats)
+                    review_report["sentiment_score"] = rv_obj.polarity
+                    if rv_obj.polarity >= 0.10:
+                        review_report["sentiment"] = "pos"
+                    else:
+                        review_report["sentiment"] = "neg"
 
                     # increment the positive negative count accordingly
                     if review_report["sentiment"] == "pos":
@@ -218,8 +218,12 @@ if __name__ == "__main__":
                     review_report["label"] = "objective"
                     product_report["objective_reviews"] += 1
 
+                # inserting review values into mongodb database
+                review_collection.insert_one(review_report)
+
                 # getting the features from a review
                 product_features = rv_obj.get_features()
+                keywords.extend(product_features.keys())
 
                 # if there are any product features
                 for k in product_features:
@@ -236,5 +240,5 @@ if __name__ == "__main__":
             # adding keywords
             product_report["keywords"] = list(set(keywords))
 
-            pprint(product_report)
-            sys.exit(0)
+            # inserting the values into mongodb database
+            print product_collection.insert_one(product_report)
