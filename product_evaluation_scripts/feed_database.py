@@ -160,7 +160,7 @@ if __name__ == "__main__":
 
             # adding filename and category to it
             product_report["product_id"] = filename.split('.')[0]
-            product_report["category"] = dirname
+            product_report["category"] = dirname[8:-2]
 
             # adding other additional data
             product_report["total_reviews"] = 0
@@ -187,7 +187,7 @@ if __name__ == "__main__":
 
                 # adding filename and category to it
                 review_report["product_id"] = filename.split('.')[0]
-                review_report["category"] = dirname
+                review_report["category"] = dirname[8:-2]
 
                 # preprocessing the data
                 rv_obj.filter_doc()
