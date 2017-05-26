@@ -29,7 +29,10 @@ def is_label_subjective(reviewText):
         return True
     return False
 
-limit = 4000
+if len(sys.argv)>=2:
+    limit = sys.argv[1]
+else:
+    limit = 4000
 
 if __name__ == "__main__":
 
@@ -89,7 +92,7 @@ if __name__ == "__main__":
             fobj.readline()
             # fetching the review text
             reviews = eval(fobj.readline())
-            no_of_reviews = len(ratings)
+            no_of_reviews = len(reviews)
 
             for i in range(no_of_reviews):
                 # if the review is objective we don't need it

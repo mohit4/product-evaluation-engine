@@ -66,6 +66,10 @@ client = MongoClient()
 # accessing the database using its name
 db = client['mydb']
 
+# drop the previous collections
+db.products.drop()
+db.reviews.drop()
+
 # accessing the collection
 review_collection = db['reviews']
 product_collection = db['products']
@@ -223,6 +227,7 @@ if __name__ == "__main__":
 
                 # getting the features from a review
                 product_features = rv_obj.get_features()
+                # adding this reviews keywords into keywords buffer
                 keywords.extend(product_features.keys())
 
                 # if there are any product features

@@ -2,9 +2,7 @@
 extract_reviews.py : extract all the specified data such as ratings, summaries, reviews etc.
 
 Usage :
-    python extract_reviews.py <input_filename> <output_directory>
-
-    e.g. python amazon_data_extraction_scripts/extract_data.py reviews_Cell_Phones_and_Accessories_5.json.gz
+    python data_extraction_scripts/extract_reviews.py
 
 Note :
     By default output_directory is assigned as the name of input zip file
@@ -31,9 +29,9 @@ if __name__ == "__main__":
 
     # it will only be executed when at least one command line
     # argument is provided which is dataset
-    if len(sys.argv) < 2:
-        print "Error : No input dataset provided!"
-        sys.exit(1)
+    # if len(sys.argv) < 2:
+    #     print "Error : No input dataset provided!"
+    #     sys.exit(1)
 
     # here all of the dataset's data will be stored
     dataset_directory = "Filtered_Dataset/"
@@ -66,7 +64,7 @@ if __name__ == "__main__":
             os.mkdir(dataset_directory+output_directory)
 
         # fetching the data from json zip file
-        data_gen = parse(input_dataset)
+        data_gen = parse(input_datasets_directory+input_dataset)
 
         # a variable to hold the no of products
         count = 0
