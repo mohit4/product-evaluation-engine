@@ -11,3 +11,4 @@ mongodb_exports.zip
 products.json
 reviews.json
 saved_classifiers/
+logs/
