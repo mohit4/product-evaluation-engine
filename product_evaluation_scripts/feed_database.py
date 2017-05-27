@@ -109,7 +109,7 @@ def document_features(list_of_words,word_features):
     document_words = set(list_of_words)
     features = {}
     for word in word_features:
-        features['contains(%s)'%word] = (word in list_of_words)
+        features[word] = (word in list_of_words)
     return features
 
 def word_score(word):
