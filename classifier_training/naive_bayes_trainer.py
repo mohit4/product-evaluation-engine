@@ -5,7 +5,7 @@ naive_bayes_trainer.py : script used to train the nltk classifier in order to do
 
 # Credits
 __author__ = "Mohit Kumar"
-__version__ = "0.9.5"
+__version__ = "1.0.0"
 __maintainer__ = "Mohit Kumar"
 __email__ = "mohitkumar2801@gmail.com"
 __status__ = "Production"
@@ -13,6 +13,7 @@ __status__ = "Production"
 import os
 import sys
 import re
+import json
 import operator
 
 import nltk
@@ -255,10 +256,13 @@ if __name__ == "__main__":
     if not os.path.exists(output_directory):
         os.mkdir(output_directory)
 
+    # maintaining logs
+    log = {}
+
     # now working on each directory withing the Filtered_Dataset
     for dir_name in dir_names:
 
-        print "fetching reviews for",dir_name[8:-2],
+        print "fetching reviews for",dir_name[8:-2]
 
         # fetching positive reviews
         fobj1 = open(dataset_directory+'/'+dir_name+'/'+'pos_reviews.txt','r')
@@ -270,9 +274,7 @@ if __name__ == "__main__":
         neg_reviews = eval(fobj2.readline())
         fobj2.close()
 
-        print "done"
-
-        print "generating docs...",
+        print "generating docs..."
 
         # generating filtered docs
         pos_docs = [( remove_small(get_negation(filter_doc(get_doc(get_expanded(sent))))) ,'pos') for sent in pos_reviews]
@@ -287,9 +289,7 @@ if __name__ == "__main__":
         training_docs = pos_docs[:pos_ratio] + neg_docs[:neg_ratio]
         testing_docs = pos_docs[pos_ratio:] + neg_docs[neg_ratio:]
 
-        print "done"
-
-        print "preparing the classifier...",
+        print "preparing the classifier..."
 
         # fetching all the words which will make the most_frequent_features.txt
         # all_words_neg = sentiment_analyzer.all_words([w for (w,p) in training_docs])
@@ -304,32 +304,28 @@ if __name__ == "__main__":
         # generating the feature set based on the word_features
         feature_set = [(document_features(d,word_features),c) for (d,c) in training_docs]
 
-        print "done"
-
-        print "training...",
+        print "training..."
 
         # selecting and training the NaiveBayesClassifier from nltk packages
         classifier = NaiveBayesClassifier.train(feature_set)
 
-        print "done"
-
-        print "testing...",
+        print "testing..."
 
         # generating feature set for testing docs
         feature_set = [(document_features(d,word_features),c) for (d,c) in testing_docs]
 
         # calculating and printing the accuracy
         acc = nltk.classify.accuracy(classifier, feature_set)
-        print "done"
 
         print "accuracy :",acc
+
+        # filling up log
+        log[dir_name[8:-2]] = {"accuracy":float(str("%.4f"%(acc))),"training":len(training_docs),"testing":len(testing_docs)}
 
         print "saving classifier..."
 
         # finally save the classifier in specified location
         save_classifier(classifier,output_directory+'/'+dir_name)
-
-        print "done"
 
         print "saving features..."
 
@@ -337,6 +333,10 @@ if __name__ == "__main__":
         fobj = open(output_directory+'/'+dir_name+'_features.txt','w')
         fobj.write(str(word_features))
 
-        print "done"
+    print "generating log file..."
 
-        print "Classfier generation completed! results are stored in saved_classifiers"
+    # saving the logs in json
+    with open('logs/classifiers_log.json','w') as fp:
+        json.dump(log,fp)
+
+    print "Classfier generation completed! results are stored in saved_classifiers"
