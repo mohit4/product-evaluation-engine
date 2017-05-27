@@ -5,7 +5,7 @@ review_class.py : Defined a class that will process the review text collectively
 
 # Credits
 __author__ = "Mohit Kumar"
-__version__ = "0.9.4"
+__version__ = "0.9.5"
 __maintainer__ = "Mohit Kumar"
 __email__ = "mohitkumar2801@gmail.com"
 __status__ = "Production"
@@ -195,7 +195,13 @@ class Review:
 
     def remove_small(self):
         """remove words smaller than equal to 3 use only after set_negation"""
-        self.doc = [w for w in self.doc if (w.endswith("_NEG") and (len(w)-4)>3) or (len(w)>3)]
+        res = []
+        for w in self.doc:
+            if w.endswith("_NEG") and (len(w)-4)>3:
+                res.append(w)
+            elif len(w)>3:
+                res.append(w)
+        self.doc = res
 
     def filter_doc(self):
         """remove stopwords from a given doc use only before set_negation"""

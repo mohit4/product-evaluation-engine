@@ -42,13 +42,14 @@ feed_database.py : script that uses the generated classifier in earlier stages t
 
 # Credits
 __author__ = "Mohit Kumar"
-__version__ = "0.9.4"
+__version__ = "1.0.0"
 __maintainer__ = "Mohit Kumar"
 __email__ = "mohitkumar2801@gmail.com"
 __status__ = "Production"
 
 import os
 import sys
+import json
 import pickle
 from pprint import pprint
 
@@ -118,6 +119,11 @@ def word_score(word):
 
 if __name__ == "__main__":
 
+    # printing the formalities
+    print "Review Analyzer v"+__version__
+    print "------------------------------"
+    print "Initializing..."
+
     # dataset directory
     dataset_directory = "Filtered_Dataset"
 
@@ -129,11 +135,17 @@ if __name__ == "__main__":
     # otherwise continue
     dirnames = os.listdir(dataset_directory)
 
+    # maintaining logs
+    log = {}
+
     # each directory is made for a specific category of products
     for dirname in dirnames:
 
         # each directory has its own NaiveBayesClassifier...
         classifier = load_classifier('saved_classifiers/'+dirname+'.pickle')
+
+        # filling up log
+        log[dirname[8:-2]] = {"products":0,"reviews":0,"positive":0,"negative":0,"objective":0}
 
         # and set of features
         feat_obj = open('saved_classifiers/'+dirname+'_features.txt','r')
@@ -142,8 +154,16 @@ if __name__ == "__main__":
 
         # list all the files of this directory/product category
         filenames = os.listdir(dataset_directory+'/'+dirname)
+        ln = len(filenames)
+        file_no = 0
+
+        print "Processing..."
 
         for filename in filenames:
+
+            # show progress and filename
+            val = float(file_no*100)/ln
+            print "[ %.2f %% ]"%(val),"["+"#"*int(val/4.0)+"-"*25+"]",filename,
 
             # access the file
             fobj = open(dataset_directory+'/'+dirname+'/'+filename,'r')
@@ -245,5 +265,24 @@ if __name__ == "__main__":
             # adding keywords
             product_report["keywords"] = list(set(keywords))
 
+            # adding data to logs
+            log[dirname[8:-2]]["products"] += 1
+            log[dirname[8:-2]]["reviews"] += product_report["total_reviews"]
+            log[dirname[8:-2]]["positive"] += product_report["positive_reviews"]
+            log[dirname[8:-2]]["negative"] += product_report["negative_reviews"]
+            log[dirname[8:-2]]["objective"] += product_report["objective_reviews"]
+
             # inserting the values into mongodb database
-            print product_collection.insert_one(product_report)
+            product_collection.insert_one(product_report)
+
+            file_no+=1
+
+            print "( +ve %4d, -ve %4d)"%(product_report["positive_reviews"],product_report["negative_reviews"])
+
+    print "generating log file..."
+
+    # saving the logs in json
+    with open('logs/feed_database_log.json','w') as fp:
+        json.dump(log,fp)
+
+    print "Review analysis completed! results are stored in mongodb database"
