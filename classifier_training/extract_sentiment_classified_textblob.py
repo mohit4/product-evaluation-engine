@@ -6,13 +6,14 @@ extract_sentiment_classified_textblob.py : this script is used to access the Fil
 
 # Credits
 __author__ = "Mohit Kumar"
-__version__ = "0.9.4"
+__version__ = "1.0.0"
 __maintainer__ = "Mohit Kumar"
 __email__ = "mohitkumar2801@gmail.com"
 __status__ = "Production"
 
 import os
 import sys
+import json
 from textblob import TextBlob as TB
 
 def is_label_positive(reviewText):
@@ -29,12 +30,17 @@ def is_label_subjective(reviewText):
         return True
     return False
 
-if len(sys.argv)>=2:
-    limit = sys.argv[1]
-else:
-    limit = 4000
+limit = 4000
+
+if len(sys.argv)==2:
+    limit = int(sys.argv[1])
 
 if __name__ == "__main__":
+
+    # print the formalities
+    print "Sentiment Dataset Extractor (sentiment based) v"+__version__
+    print "------------------------------------------"
+    print "Extracting..."
 
     # the location of extracted dataset
     dataset_directory = "Filtered_Dataset"
@@ -60,8 +66,14 @@ if __name__ == "__main__":
     if not os.path.exists(output_directory):
         os.mkdir(output_directory)
 
+    # maintaining a log for metadata
+    log = {}
+
     # now working on each directory withing the Filtered_Dataset
     for dir_name in dir_names:
+
+        # print the current category
+        print "Category :",dir_name[8:-2]
 
         # make directory for current category of products
         if not os.path.exists(output_directory+'/'+dir_name):
@@ -120,5 +132,16 @@ if __name__ == "__main__":
         neg_file.write(str(neg_reviews))
         neg_file.close()
 
+        # add data to log"
+        log[dir_name[8:-2]] = {"limit":limit,"positive":no_of_pos_reviews,"negative":no_of_neg_reviews}
+
         # print appropriate message
-        print "Extracted training data for",dir_name
+        print "Extracted!"
+
+    # print the logs
+    print "generating log file..."
+    with open('logs/sentiment_data_extract_log.json','w') as fp:
+        json.dump(log,fp)
+
+    # ending message
+    print "Extraction completed! results are stored in Sentiment_Classifier_Training_Data"
