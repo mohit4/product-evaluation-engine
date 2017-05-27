@@ -5,7 +5,7 @@ naive_bayes_trainer.py : script used to train the nltk classifier in order to do
 
 # Credits
 __author__ = "Mohit Kumar"
-__version__ = "0.9.4"
+__version__ = "0.9.5"
 __maintainer__ = "Mohit Kumar"
 __email__ = "mohitkumar2801@gmail.com"
 __status__ = "Production"
@@ -162,7 +162,6 @@ contractions = {
 # for matching the contractions words
 contractions_re = re.compile('(%s)' % '|'.join(contractions.keys()))
 
-
 # this will extract the list of features from a document
 # returns a dictionary with the given format
 # <word1> : True
@@ -198,7 +197,13 @@ def get_doc(text):
 
 def remove_small(doc):
     """remove words smaller than equal to 3"""
-    return [w for w in doc if (w.endswith("_NEG") and (len(w)-4)>3) or (len(w)>3)]
+    res = []
+    for w in doc:
+        if w.endswith("_NEG") and (len(w)-4)>3:
+            res.append(w)
+        elif len(w)>3:
+            res.append(w)
+    return res
 
 def save_classifier(classifier,filename):
     """saving the classifier"""
@@ -220,6 +225,11 @@ def save_classifier(classifier,filename):
 # unigram_feats = sentiment_analyzer.unigram_word_feats(all_words_neg, min_freq=4)
 
 if __name__ == "__main__":
+
+    # printing the formalities
+    print "Sentiment classifier trainer (naive bayes classifier) v"+__version__
+    print "--------------------------------------------------------------------"
+    print "Initializing..."
 
     # the location of classified reviews for model training
     dataset_directory = "Sentiment_Classifier_Training_Data"
@@ -248,6 +258,8 @@ if __name__ == "__main__":
     # now working on each directory withing the Filtered_Dataset
     for dir_name in dir_names:
 
+        print "fetching reviews for",dir_name[8:-2],
+
         # fetching positive reviews
         fobj1 = open(dataset_directory+'/'+dir_name+'/'+'pos_reviews.txt','r')
         pos_reviews = eval(fobj1.readline())
@@ -258,17 +270,26 @@ if __name__ == "__main__":
         neg_reviews = eval(fobj2.readline())
         fobj2.close()
 
+        print "done"
+
+        print "generating docs...",
+
         # generating filtered docs
         pos_docs = [( remove_small(get_negation(filter_doc(get_doc(get_expanded(sent))))) ,'pos') for sent in pos_reviews]
         neg_docs = [( remove_small(get_negation(filter_doc(get_doc(get_expanded(sent))))) ,'neg') for sent in neg_reviews]
 
         # training and testing ratio is 80:20
-        ln = len(pos_reviews)+len(neg_reviews)
-        training_ratio = int(0.80*ln)
+        training_ratio = 0.80
+        pos_ratio = int(training_ratio*len(pos_reviews))
+        neg_ratio = int(training_ratio*len(neg_reviews))
 
         # partitioning the docs into training and testing
-        training_docs = pos_docs[:training_ratio] + neg_docs[:training_ratio]
-        testing_docs = pos_docs[training_ratio:] + neg_docs[training_ratio:]
+        training_docs = pos_docs[:pos_ratio] + neg_docs[:neg_ratio]
+        testing_docs = pos_docs[pos_ratio:] + neg_docs[neg_ratio:]
+
+        print "done"
+
+        print "preparing the classifier...",
 
         # fetching all the words which will make the most_frequent_features.txt
         # all_words_neg = sentiment_analyzer.all_words([w for (w,p) in training_docs])
@@ -283,21 +304,39 @@ if __name__ == "__main__":
         # generating the feature set based on the word_features
         feature_set = [(document_features(d,word_features),c) for (d,c) in training_docs]
 
+        print "done"
+
+        print "training...",
+
         # selecting and training the NaiveBayesClassifier from nltk packages
         classifier = NaiveBayesClassifier.train(feature_set)
 
-        print "Training done!"
+        print "done"
+
+        print "testing...",
 
         # generating feature set for testing docs
         feature_set = [(document_features(d,word_features),c) for (d,c) in testing_docs]
 
         # calculating and printing the accuracy
         acc = nltk.classify.accuracy(classifier, feature_set)
+        print "done"
+
         print "accuracy :",acc
+
+        print "saving classifier..."
 
         # finally save the classifier in specified location
         save_classifier(classifier,output_directory+'/'+dir_name)
 
+        print "done"
+
+        print "saving features..."
+
         # also the word features as they'll be required at the time of classification
         fobj = open(output_directory+'/'+dir_name+'_features.txt','w')
         fobj.write(str(word_features))
+
+        print "done"
+
+        print "Classfier generation completed! results are stored in saved_classifiers"
