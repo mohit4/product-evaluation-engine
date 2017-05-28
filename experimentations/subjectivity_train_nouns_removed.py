@@ -4,6 +4,7 @@ run this on python3
 
 import sys
 import nltk
+import pickle
 import collections
 from nltk.metrics import precision,recall,f_measure,accuracy
 from nltk.corpus import subjectivity
@@ -16,6 +17,12 @@ from nltk.corpus import wordnet
 stop = set(stopwords.words('english'))
 wnl = WNL()
 
+def save_classifier(classifier,filename):
+    """saving the classifier"""
+    f = open(filename+'.pickle','wb')
+    pickle.dump(classifier,f)
+    f.close()
+
 # sentence is a list of words
 # working on a single sentence and lemmatize the words wherever possible
 # returns a list of words
@@ -23,9 +30,13 @@ def transform(sentence):
     l = len(sentence)
     # part of speech tagging
     tags = nltk.pos_tag(sentence)
+    res = []
     for i in range(l):
-        sentence[i] = lemmatization(tags[i][0],tags[i][1])
-    return sentence
+        # remove NOUNs
+        if tags[i][1].startswith('NN'):
+            continue
+        res.append(lemmatization(tags[i][0],tags[i][1]))
+    return res
 
 # lemmatizes the word with appropriate pos tag
 def lemmatization(word,pos):
@@ -87,7 +98,7 @@ def filter_stopword(words):
 #         return True
 #     return False
 
-no_of_reviews = 5000
+no_of_reviews = 6000
 subj_docs = [(transform(sent),'subj') for sent in subjectivity.sents(categories='subj')[:no_of_reviews]]
 obj_docs = [(transform(sent),'obj') for sent in subjectivity.sents(categories='obj')[:no_of_reviews]]
 print("subj: %d, obj: %d"%(len(subj_docs),len(obj_docs)))
@@ -114,12 +125,11 @@ sentiment_analyzer = SentimentAnalyzer()
 
 all_words_neg = sentiment_analyzer.all_words(training_docs)
 unigram_feats = sentiment_analyzer.unigram_word_feats(all_words_neg, min_freq=4)
-unigram_feats = unigram_feats[:1738]
+unigram_feats = unigram_feats[:2000]
 
 # save unigram feats in file
-fobj = open("subjective_trainer_unigram_word_removal_feats.txt",'w')
-for w in unigram_feats:
-    fobj.write(w+"\n")
+fobj = open("subjectivity_classifier_nouns_features.txt",'w')
+fobj.write(str(unigram_feats))
 fobj.close()
 
 # sys.exit(0)
@@ -154,3 +164,5 @@ print("---"*6)
 print("obj recall:",recall(refsets['obj'],testsets['obj']))
 print("obj precision:",precision(refsets['obj'],testsets['obj']))
 print("obj f-measure:",f_measure(refsets['obj'],testsets['obj']))
+
+save_classifier(classifier,"subjectivity_classifier_nouns")
