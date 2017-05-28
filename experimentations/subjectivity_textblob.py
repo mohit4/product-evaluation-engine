@@ -31,9 +31,9 @@ for i, (feats,label) in enumerate(testing_docs):
 # for subjectives
 print "sub precision:",precision(refsets['subj'],testsets['subj'])
 print "sub recall:",recall(refsets['subj'],testsets['subj'])
-# print "sub f-measure:",f_measure(refsets['subj'],testsets['subj'])
+print "sub f-measure:",f_measure(refsets['subj'],testsets['subj'])
 
 # for objectives
 print "obj precision:",precision(refsets['obj'],testsets['obj'])
 print "obj recall:",recall(refsets['obj'],testsets['obj'])
-# print "obj f-measure:",f_measure(refsets['obj'],testsets['obj'])
+print "obj f-measure:",f_measure(refsets['obj'],testsets['obj'])
