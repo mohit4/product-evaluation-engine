@@ -25,7 +25,7 @@ def is_label_positive(rating):
 def is_label_subjective(reviewText):
     """return True if the review is highly subjective"""
     tb = TB(reviewText)
-    if tb.subjectivity >= 0.50:
+    if tb.subjectivity >= 0.45:
         return True
     return False
 

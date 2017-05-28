@@ -42,7 +42,7 @@ feed_database.py : script that uses the generated classifier in earlier stages t
 
 # Credits
 __author__ = "Mohit Kumar"
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 __maintainer__ = "Mohit Kumar"
 __email__ = "mohitkumar2801@gmail.com"
 __status__ = "Production"
@@ -163,7 +163,8 @@ if __name__ == "__main__":
 
             # show progress and filename
             val = float(file_no*100)/ln
-            print "[ %.2f %% ]"%(val),"["+"#"*int(val/4.0)+"-"*25+"]",filename,
+            val_4 = int(val/4.0)
+            print "[ %.2f %% ]"%(val),"["+"#"*val_4+"-"*(25-val_4)+"]",filename,
 
             # access the file
             fobj = open(dataset_directory+'/'+dirname+'/'+filename,'r')
