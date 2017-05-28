@@ -1,3 +1,4 @@
+import sys
 import nltk
 import collections
 from nltk.metrics import precision,recall,f_measure,accuracy
@@ -31,6 +32,15 @@ sentiment_analyzer = SentimentAnalyzer()
 all_words_neg = sentiment_analyzer.all_words([mark_negation(doc) for doc in training_docs])
 unigram_feats = sentiment_analyzer.unigram_word_feats(all_words_neg, min_freq=4)
 unigram_feats = unigram_feats[:2000]
+
+# save unigram feats in file
+fobj = open("subjective_trainer_unigram_feats.txt",'w')
+for w in unigram_feats:
+    fobj.write(w+"\n")
+fobj.close()
+
+# sys.exit(0)
+
 print("Unigram feats:",len(unigram_feats))
 sentiment_analyzer.add_feat_extractor(extract_unigram_feats, unigrams=unigram_feats)
 

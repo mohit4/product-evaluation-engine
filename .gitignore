@@ -7,3 +7,6 @@ Filtered_Dataset/
 Sentiment_Classifier_Training_Data/
 saved_classifiers/
 logs/
+experimentations/simple_nbs.py
+experimentations/product_reviews_corpus.py
+experimentations/movie_reviews_sentiment.py

@@ -18,7 +18,7 @@ from textblob import TextBlob as TB
 
 def is_label_positive(rating):
     """return true if the review has a rating equal or greater than 3"""
-    if rating >= 3:
+    if rating > 3:
         return True
     return False
 
